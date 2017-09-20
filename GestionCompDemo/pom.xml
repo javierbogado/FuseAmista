@@ -27,6 +27,13 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
+	  <!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-spring-boot-starter-jaxrs -->
+<!-- 	<dependency> -->
+<!-- 	    <groupId>org.apache.cxf</groupId> -->
+<!-- 	    <artifactId>cxf-spring-boot-starter-jaxrs</artifactId> -->
+<!-- 	    <version>3.2.0</version> -->
+<!-- 	</dependency> -->
+  
  	<dependency>
 	   <groupId>org.apache.cxf</groupId>
    	   <artifactId>cxf-rt-frontend-jaxrs</artifactId>
