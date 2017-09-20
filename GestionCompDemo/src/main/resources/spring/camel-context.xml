@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="             http://www.springframework.org/schema/beans     http://www.springframework.org/schema/beans/spring-beans.xsd     http://camel.apache.org/schema/spring     http://camel.apache.org/schema/spring/camel-spring.xsd     http://camel.apache.org/schema/cxf      http://camel.apache.org/schema/cxf/camel-cxf.xsd ">
+    <!-- ***CXFrs***  -->
+    <cxf:rsServer address="http://ws.gestioncompartida/"
+        id="fileEndpoint" serviceClass="org.mycompany.service.FileService"/>
+    <!-- Define a traditional camel context here -->
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <route id="fromEntidadesfile">
+            <from id="fromEntidadesFile" uri="file:C:\\Users\\User\\javy"/>
+            <log id="logBodyFromFile" message="El archivo tiene este contenido: ${body}"/>
+        </route>
+        <route id="restToFileSystem">
+            <from id="fileEndpoint" uri="cxfrs:fileEndpoint"/>
+            <log id="_log1" message="El body llegado por REST es: ${body}"/>
+        </route>
+    </camelContext>
+</beans>
