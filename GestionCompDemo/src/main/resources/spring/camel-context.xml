@@ -3,19 +3,70 @@
     xmlns:camel="http://camel.apache.org/schema/spring"
     xmlns:cxf="http://camel.apache.org/schema/cxf"
     xmlns:http-conf="http://cxf.apache.org/transports/http/configuration"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="             http://www.springframework.org/schema/beans     http://www.springframework.org/schema/beans/spring-beans.xsd     http://camel.apache.org/schema/spring     http://camel.apache.org/schema/spring/camel-spring.xsd     http://camel.apache.org/schema/cxf      http://camel.apache.org/schema/cxf/camel-cxf.xsd ">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans     http://www.springframework.org/schema/beans/spring-beans.xsd     http://camel.apache.org/schema/spring     http://camel.apache.org/schema/spring/camel-spring.xsd     http://camel.apache.org/schema/cxf     http://camel.apache.org/schema/cxf/camel-cxf.xsd">
     <!-- ***CXFrs***  -->
-    <cxf:rsServer id="fileEndpoint" address="http://ws.gestioncompartida/" serviceClass="org.mycompany.rest.service.FileService">
-    </cxf:rsServer>
+    <cxf:rsServer address="http://localhost:9191/ws.gc"
+        id="fileEndpoint" serviceClass="org.mycompany.rest.service.FileService"/>
+    <!-- MyBatis MySql-->
+    <bean class="org.apache.camel.component.mybatis.MyBatisComponent" id="mybatisMySQL">
+        <property name="sqlSessionFactory" ref="sqlSessionFactoryMySQL"/>
+    </bean>
+    <!-- sqlSessionFactory para mySQL  -->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactoryMySQL">
+        <property name="dataSource" ref="dsSybaseMySQL"/>
+        <!-- standard mybatis config file -->
+        <property name="mapperLocations" value="classpath*:org/mycompany/persistence/visa.xml"/>
+    </bean>
+    <!-- 	mySQL datasource -->
+    <bean
+        class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+        id="bean-8147b371-c9f3-4737-9644-d8ec848ed872" name="dsSybaseMySQL">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://172.17.0.3:3306/demogc"/>
+        <property name="username" value="root"/>
+        <property name="password" value="mysql"/>
+    </bean>
     <!-- Define a traditional camel context here -->
     <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
-        <route id="fromEntidadesfile">
-            <from id="fromEntidadesFile" uri="file:C:\\Users\\User\\javy"/>
-            <log id="logBodyFromFile" message="El archivo tiene este contenido: ${body}"/>
+        <route id="FILEROUTE">
+            <from id="fromEntidadesFile" uri="file:C:\\Users\\User\\javy\\ftptransfer\\gc"/>
+            <choice id="fileext_choice">
+                <when id="txt_when">
+                    <simple>${file:ext} == 'txt'</simple>
+                    <setHeader headerName="CamelFileName" id="filename_setHeader">
+                        <simple>${file:name.noext}$simple{date:now:SSS}.${file:ext}</simple>
+                    </setHeader>
+                    <split id="segmentar_splitter" streaming="true">
+                        <tokenize group="8" token="\n"/>
+                        <camel:recipientList id="_recipientList1">
+                            <camel:simple>file:C:\\Users\\User\\javy\\ftptransfer\\gc\\segments?fileName=${file:name.noext}-$simple{date:now:yyyyMMdd HH-mm-ss}-part${header.CamelSplitIndex}.${file:ext}</camel:simple>
+                        </camel:recipientList>
+                    </split>
+                </when>
+                <when id="xls_when">
+                    <simple>${file:ext} == 'xls' || ${file:ext} == 'xlsx'</simple>
+                    <log id="_log2" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/>
+                </when>
+                <otherwise id="fileext_otherwise">
+                    <log id="_log3" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/>
+                </otherwise>
+            </choice>
         </route>
-        <route id="restToFileSystem">
-            <from id="fileEndpoint" uri="cxfrs:bean:fileEndpoint?bindingStyle=SimpleConsumer"/>
-            <log id="_log1" message="El body llegado por REST es: ${body}"/>
+        <route id="RESTROUTE">
+            <from id="fileEndpointFrom" uri="cxfrs:bean:fileEndpoint?bindingStyle=SimpleConsumer"/>
+            <log id="restLog" message="El body llegado por REST es: ${body}"/>
+            <unmarshal id="base64unmarshal">
+                <base64 id="base64decode"/>
+            </unmarshal>
+            <to id="_to1" uri="file:C:\\Users\\User\\javy?fileName=visa.txt"/>
+        </route>
+        <route id="FTPROUTE">
+            <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/?password=lucho"/>
+            <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/>
+        </route>
+        <route id="MYSQLROUTE">
+            <from id="mysqlFrom" uri="direct:insertEntities"/>
+            <to id="mybatisMySQLTo" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
         </route>
     </camelContext>
 </beans>

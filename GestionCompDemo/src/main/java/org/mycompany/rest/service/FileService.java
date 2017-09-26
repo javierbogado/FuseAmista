@@ -6,7 +6,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import org.springframework.stereotype.Component;
 
 // START SNIPPET: example
 @Path("/fileservice/")
@@ -18,7 +17,7 @@ public class FileService {
                     "application/json" })
     @Produces({ "application/xml", "text/plain",
                     "application/json" })
-    Object invoke(@PathParam("id") String id,
+    public Object invoke(@PathParam("id") String id,
                     String payload) {
     	return null;
     }
