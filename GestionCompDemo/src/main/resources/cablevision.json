@@ -9,8 +9,15 @@
 				"value": null,
 				"mascara": null
 			},
-			"FOOTER": null
+			"apellido": {
+				"delimitador": ",",
+				"pos": null,
+				"value": null,
+				"mascara": null
+			}
+			
 		},
-		"footer": null
-	}
+		"FOOTER": null
+	},
+	"footer": null
 }

@@ -29,7 +29,7 @@
     <!-- Define a traditional camel context here -->
     <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
         <route id="FILEROUTE">
-            <from id="fromEntidadesFile" uri="file:C:\\Users\\User\\javy\\ftptransfer\\gc"/>
+            <from id="fromEntidadesFile" uri="file:C:\\Users\\User\\javy\\cablevision"/>
             <choice id="fileext_choice">
                 <when id="txt_when">
                     <simple>${file:ext} == 'txt'</simple>
@@ -39,11 +39,12 @@
                     <split id="segmentar_splitter" streaming="true">
                         <tokenize group="8" token="\n"/>
                         <camel:recipientList id="_recipientList1">
-                            <camel:simple>file:C:\\Users\\User\\javy\\ftptransfer\\gc\\segments?fileName=${file:name.noext}-$simple{date:now:yyyyMMdd HH-mm-ss}-part${header.CamelSplitIndex}.${file:ext}</camel:simple>
+                            <camel:simple>file:C:\\Users\\User\\javy\\cablevision\\segments?fileName=${file:name.noext}-$simple{date:now:yyyyMMdd HH-mm-ss}-part${header.CamelSplitIndex}.${file:ext}</camel:simple>
                         </camel:recipientList>
                         <camel:log id="_log1" message="### ARCHIVO ${file:name.noext}:"/>
                         <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
                     </split>
+                    <camel:to uri="direct:processToDB"/>
                 </when>
                 <when id="xls_when">
                     <simple>${file:ext} == 'xls' || ${file:ext} == 'xlsx'</simple>
@@ -54,26 +55,57 @@
                 </otherwise>
             </choice>
         </route>
-        <route id="RESTROUTE">
+        <route id="RESTROUTE">            
             <from id="fileEndpointFrom" uri="cxfrs:bean:fileEndpoint?bindingStyle=SimpleConsumer"/>
             <log id="restLog" message="El body llegado por REST es: ${body}"/>
-            <unmarshal id="base64unmarshal">
-                <base64 id="base64decode"/>
-            </unmarshal>
-            <to id="_to1" uri="file:C:\\Users\\User\\javy\\ftptransfer\\gc?fileName=visa.txt"/>
+            <camel:unmarshal>
+            	<camel:base64/>
+            </camel:unmarshal>
+            <camel:setProperty id="direct:filein_setProperty" propertyName="cliente">
+                <camel:simple>${header.cliente}</camel:simple>
+            </camel:setProperty>
+            <camel:log message="#### CLIENTE: ${property.cliente} ###"></camel:log>
+            <camel:to id="direct:filein_to" uri="direct:filein"/>
         </route>
         <route id="FTPROUTE">
-            <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/?password=lucho"/>
+            <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/cablevision?password=lucho"/>
             <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/>
+            <camel:setProperty id="_setProperty2" propertyName="cliente">
+                <camel:simple>cablevision</camel:simple>
+            </camel:setProperty>
+            <camel:to id="direct:filein_to" uri="direct:filein"/>
         </route>
+        <camel:route id="FILEIN_route">
+            <camel:from id="filein_from" uri="direct:filein"/>
+            <camel:recipientList id="filein_recipientList">
+                <camel:simple>file:C:\\Users\\User\\javy\\${property.cliente}?fileName=${property.cliente}.txt</camel:simple>
+            </camel:recipientList>
+        </camel:route>
         <route id="MYSQLROUTE">
             <from id="mysqlFrom" uri="direct:insertEntities"/>
             <to id="mybatisMySQLTo" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
         </route>
+        <route>
+        	<camel:from uri="direct:processToDB"/>
+        	<camel:to uri="direct:readConf"/>
+        	<camel:split>
+        		
+        	</camel:split>
+        	<camel:to />
+        </route>
         <route id="readConf_route">
-            <from id="readConf_from" uri="timer:readConfFirer?repeatCount=1"/>
-            <to id="velocity_to" uri="velocity:cablevision.json?encoding=UTF-8"/>
+            <camel:from id="_from2" uri="direct:readConf"/>
+            <camel:recipientList>
+        		<camel:simple>velocity:cablevision.json?encoding=UTF-8</camel:simple>
+        	</camel:recipientList>
             <camel:to id="_to3" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+            <unmarshal id="readConf_unmarshal">
+                <json library="Jackson" unmarshalTypeName="java.util.HashMap"/>
+            </unmarshal>
+            <setProperty id="configurationMap_setProperty" propertyName="configurationMap">
+                <simple>${body}</simple>
+            </setProperty>
+            <log id="_log4" message="La property configurationMap es: ${property.configurationMap}"/>
         </route>
     </camelContext>
 </beans>
