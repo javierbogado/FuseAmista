@@ -1,0 +1,16 @@
+{
+	"header": null,
+	"body": {
+		"HEADER": null,
+		"BODY": {
+			"nombre": {
+				"delimitador": ",",
+				"pos": null,
+				"value": null,
+				"mascara": null
+			},
+			"FOOTER": null
+		},
+		"footer": null
+	}
+}

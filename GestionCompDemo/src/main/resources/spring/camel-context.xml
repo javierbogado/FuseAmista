@@ -17,7 +17,7 @@
         <!-- standard mybatis config file -->
         <property name="mapperLocations" value="classpath*:org/mycompany/persistence/visa.xml"/>
     </bean>
-    <!-- 	mySQL datasource -->
+    <!-- mySQL datasource -->
     <bean
         class="org.springframework.jdbc.datasource.DriverManagerDataSource"
         id="bean-8147b371-c9f3-4737-9644-d8ec848ed872" name="dsSybaseMySQL">
@@ -41,6 +41,8 @@
                         <camel:recipientList id="_recipientList1">
                             <camel:simple>file:C:\\Users\\User\\javy\\ftptransfer\\gc\\segments?fileName=${file:name.noext}-$simple{date:now:yyyyMMdd HH-mm-ss}-part${header.CamelSplitIndex}.${file:ext}</camel:simple>
                         </camel:recipientList>
+                        <camel:log id="_log1" message="### ARCHIVO ${file:name.noext}:"/>
+                        <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
                     </split>
                 </when>
                 <when id="xls_when">
@@ -58,7 +60,7 @@
             <unmarshal id="base64unmarshal">
                 <base64 id="base64decode"/>
             </unmarshal>
-            <to id="_to1" uri="file:C:\\Users\\User\\javy?fileName=visa.txt"/>
+            <to id="_to1" uri="file:C:\\Users\\User\\javy\\ftptransfer\\gc?fileName=visa.txt"/>
         </route>
         <route id="FTPROUTE">
             <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/?password=lucho"/>
@@ -67,6 +69,11 @@
         <route id="MYSQLROUTE">
             <from id="mysqlFrom" uri="direct:insertEntities"/>
             <to id="mybatisMySQLTo" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
+        </route>
+        <route id="readConf_route">
+            <from id="readConf_from" uri="timer:readConfFirer?repeatCount=1"/>
+            <to id="velocity_to" uri="velocity:cablevision.json?encoding=UTF-8"/>
+            <camel:to id="_to3" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
         </route>
     </camelContext>
 </beans>
