@@ -33,9 +33,6 @@
             <choice id="fileext_choice">
                 <when id="txt_when">
                     <simple>${file:ext} == 'txt'</simple>
-                    <setHeader headerName="CamelFileName" id="filename_setHeader">
-                        <simple>${file:name.noext}$simple{date:now:SSS}.${file:ext}</simple>
-                    </setHeader>
                     <split id="segmentar_splitter" streaming="true">
                         <tokenize group="8" token="\n"/>
                         <camel:recipientList id="_recipientList1">
@@ -44,7 +41,6 @@
                         <camel:log id="_log1" message="### ARCHIVO ${file:name.noext}:"/>
                         <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
                     </split>
-                    <camel:to uri="direct:processToDB"/>
                 </when>
                 <when id="xls_when">
                     <simple>${file:ext} == 'xls' || ${file:ext} == 'xlsx'</simple>
@@ -55,25 +51,26 @@
                 </otherwise>
             </choice>
         </route>
-        <route id="RESTROUTE">            
+        <route id="RESTROUTE">
             <from id="fileEndpointFrom" uri="cxfrs:bean:fileEndpoint?bindingStyle=SimpleConsumer"/>
             <log id="restLog" message="El body llegado por REST es: ${body}"/>
-            <camel:unmarshal>
-            	<camel:base64/>
+            <camel:unmarshal id="_unmarshal1">
+                <camel:base64/>
             </camel:unmarshal>
-            <camel:setProperty id="direct:filein_setProperty" propertyName="cliente">
+            <camel:setProperty id="cxfrsclient_setProperty" propertyName="cliente">
                 <camel:simple>${header.cliente}</camel:simple>
             </camel:setProperty>
-            <camel:log message="#### CLIENTE: ${property.cliente} ###"></camel:log>
-            <camel:to id="direct:filein_to" uri="direct:filein"/>
+            <camel:log id="_log5" message="#### CLIENTE: ${property.cliente} ###"/>
+            <camel:to id="fromcxfrs:filein_to" uri="direct:filein"/>
         </route>
+        <!--         http://camel.apache.org/how-do-i-use-spring-property-placeholder-with-camel-xml.html -->
         <route id="FTPROUTE">
             <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/cablevision?password=lucho"/>
             <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/>
-            <camel:setProperty id="_setProperty2" propertyName="cliente">
+            <camel:setProperty id="ftpclient_setProperty" propertyName="cliente">
                 <camel:simple>cablevision</camel:simple>
             </camel:setProperty>
-            <camel:to id="direct:filein_to" uri="direct:filein"/>
+            <camel:to id="fromftp:filein_to" uri="direct:filein"/>
         </route>
         <camel:route id="FILEIN_route">
             <camel:from id="filein_from" uri="direct:filein"/>
@@ -83,22 +80,15 @@
         </camel:route>
         <route id="MYSQLROUTE">
             <from id="mysqlFrom" uri="direct:insertEntities"/>
-            <to id="mybatisMySQLTo" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
-        </route>
-        <route>
-        	<camel:from uri="direct:processToDB"/>
-        	<camel:to uri="direct:readConf"/>
-        	<camel:split>
-        		
-        	</camel:split>
-        	<camel:to />
+            <to id="mybatisMySQL_to" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
         </route>
         <route id="readConf_route">
-            <camel:from id="_from2" uri="direct:readConf"/>
-            <camel:recipientList>
-        		<camel:simple>velocity:cablevision.json?encoding=UTF-8</camel:simple>
-        	</camel:recipientList>
-            <camel:to id="_to3" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+            <!--TODO:  la lectura a mysql debe ser dinamica (con recipientList se puede leer dinamicamente) -->
+            <camel:from id="readConf_from" uri="direct:readConf"/>
+            <camel:recipientList id="readConf_recipientList">
+                <camel:simple>velocity:cablevision.json?encoding=UTF-8</camel:simple>
+            </camel:recipientList>
+            <camel:to id="log_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
             <unmarshal id="readConf_unmarshal">
                 <json library="Jackson" unmarshalTypeName="java.util.HashMap"/>
             </unmarshal>
@@ -106,6 +96,25 @@
                 <simple>${body}</simple>
             </setProperty>
             <log id="_log4" message="La property configurationMap es: ${property.configurationMap}"/>
+        </route>
+        <route id="FILESEGMENTS_ROUTE">
+            <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?initialDelay=10000"/>
+            <setProperty id="filesegmets_setProperty" propertyName="filesegment">
+                <simple>${body}</simple>
+            </setProperty>
+            <log id="filesegment_log" message="\n ##### EL archivo segmentado ${file:name} tiene el contenido: \n ${property.filesegment}"/>
+            <to id="filesegments_toprocessToDB" uri="direct:processToDB"/>
+        </route>
+        <route id="processToDB_route">
+            <camel:from id="processToDB_from" uri="direct:processToDB"/>
+            <camel:to id="processToDB_toreadConf" uri="direct:readConf"/>
+            <camel:setBody id="_setBody1">
+                <camel:simple>${property.filesegment}</camel:simple>
+            </camel:setBody>
+            <camel:unmarshal id="_unmarshal2">
+                <camel:csv/>
+            </camel:unmarshal>
+            <camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
         </route>
     </camelContext>
 </beans>

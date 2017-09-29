@@ -2,7 +2,7 @@
 	"header": null,
 	"body": {
 		"HEADER": null,
-		"BODY": {
+		"BODY": {			
 			"nombre": {
 				"delimitador": ",",
 				"pos": null,
