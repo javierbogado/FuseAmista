@@ -5,19 +5,19 @@
 		"BODY": {			
 			"cuenta": {
 				"delimiter": null,
-				"position": 38,
+				"position": 49,
 				"value": null,
 				"mask": null
 			},
 			"usuario": {
 				"delimitador": null,
-				"position": 35,
+				"position": 25,
 				"value": null,
 				"mascara": null
 			},
 			"fecha": {
 				"delimitador": null,
-				"position": 10,
+				"position": 8,
 				"value": null,
 				"mascara": null
 			}
