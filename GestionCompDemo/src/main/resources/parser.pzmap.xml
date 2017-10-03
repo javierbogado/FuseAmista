@@ -1,0 +1,8 @@
+<?xml version='1.0'?>
+<!DOCTYPE PZMAP SYSTEM "flatpack.dtd" >
+<PZMAP>
+	#set($bodycolumn = $body.body.BODY)
+	#foreach($atributo in $bodycolumn.keySet())
+	<COLUMN name="$atributo" length="$bodycolumn.get("$atributo").position" />	
+	#end
+</PZMAP> 

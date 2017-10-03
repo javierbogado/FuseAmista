@@ -18,13 +18,16 @@
         <property name="mapperLocations" value="classpath*:org/mycompany/persistence/visa.xml"/>
     </bean>
     <!-- mySQL datasource -->
-    <bean
-        class="org.springframework.jdbc.datasource.DriverManagerDataSource"
-        id="bean-8147b371-c9f3-4737-9644-d8ec848ed872" name="dsSybaseMySQL">
-        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dsSybaseMySQL">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://172.17.0.3:3306/demogc"/>
         <property name="username" value="root"/>
         <property name="password" value="mysql"/>
+    </bean>
+    <bean id="flatpack_bean" class="org.apache.camel.dataformat.flatpack.FlatpackDataFormat">
+        <property name="definition" value="file:C:\\Users\User\javy\cablevision\pzmaps\dparser.pzmap.xml"/>
+        <property name="fixed" value="true"/>
+        <property name="ignoreExtraColumns" value="true"/>
     </bean>
     <!-- Define a traditional camel context here -->
     <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
@@ -41,13 +44,15 @@
                         <camel:log id="_log1" message="### ARCHIVO ${file:name.noext}:"/>
                         <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
                     </split>
+                    <camel:to id="txt_when_toreadConf" uri="direct:readConf"/>
                 </when>
                 <when id="xls_when">
                     <simple>${file:ext} == 'xls' || ${file:ext} == 'xlsx'</simple>
                     <log id="_log2" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/>
+                    <camel:to id="xls_when_toreadConf" uri="direct:readConf"/>
                 </when>
                 <otherwise id="fileext_otherwise">
-                    <log id="_log3" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/>
+                    <log id="_log3" message="El archivo ${file:name} posee una extension invalida: ${file:ext}" loggingLevel="ERROR"/>
                 </otherwise>
             </choice>
         </route>
@@ -65,7 +70,7 @@
         </route>
         <!--         http://camel.apache.org/how-do-i-use-spring-property-placeholder-with-camel-xml.html -->
         <route id="FTPROUTE">
-            <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.107:21/cablevision?password=lucho"/>
+            <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.103:21/cablevision?password=lucho"/>
             <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/>
             <camel:setProperty id="ftpclient_setProperty" propertyName="cliente">
                 <camel:simple>cablevision</camel:simple>
@@ -82,39 +87,27 @@
             <from id="mysqlFrom" uri="direct:insertEntities"/>
             <to id="mybatisMySQL_to" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
         </route>
-        <route id="readConf_route">
-            <!--TODO:  la lectura a mysql debe ser dinamica (con recipientList se puede leer dinamicamente) -->
+        <route id="readConf_route">           
             <camel:from id="readConf_from" uri="direct:readConf"/>
+             <!--TODO:  la lectura a mysql debe ser dinamica (con recipientList se puede leer dinamicamente) -->
             <camel:recipientList id="readConf_recipientList">
-                <camel:simple>velocity:cablevision.json?encoding=UTF-8</camel:simple>
+                <camel:simple>velocity:cablevision-stdbank.json?encoding=UTF-8</camel:simple>
             </camel:recipientList>
-            <camel:to id="log_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
             <unmarshal id="readConf_unmarshal">
-                <json library="Jackson" unmarshalTypeName="java.util.HashMap"/>
+                <json library="Jackson" unmarshalTypeName="java.util.LinkedHashMap"/>
             </unmarshal>
-            <setProperty id="configurationMap_setProperty" propertyName="configurationMap">
-                <simple>${body}</simple>
-            </setProperty>
-            <log id="_log4" message="La property configurationMap es: ${property.configurationMap}"/>
+             <!--TODO: FIN -->
+             
+            <camel:to id="logconfmap_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+            <camel:to uri="velocity:parser.pzmap.xml?encoding=UTF-8"/>
+            <camel:to uri="file:C:\Users\User\javy\cablevision\pzmaps?fileName=dparser.pzmap.xml"/>
         </route>
         <route id="FILESEGMENTS_ROUTE">
-            <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?initialDelay=10000"/>
-            <setProperty id="filesegmets_setProperty" propertyName="filesegment">
-                <simple>${body}</simple>
-            </setProperty>
-            <log id="filesegment_log" message="\n ##### EL archivo segmentado ${file:name} tiene el contenido: \n ${property.filesegment}"/>
-            <to id="filesegments_toprocessToDB" uri="direct:processToDB"/>
+            <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?initialDelay=10000&amp;noop=true"/>
+			<unmarshal ref="flatpack_bean"/>
+			<camel:convertBodyTo type="java.util.HashMap"/>
+			<camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
         </route>
-        <route id="processToDB_route">
-            <camel:from id="processToDB_from" uri="direct:processToDB"/>
-            <camel:to id="processToDB_toreadConf" uri="direct:readConf"/>
-            <camel:setBody id="_setBody1">
-                <camel:simple>${property.filesegment}</camel:simple>
-            </camel:setBody>
-            <camel:unmarshal id="_unmarshal2">
-                <camel:csv/>
-            </camel:unmarshal>
-            <camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
-        </route>
+
     </camelContext>
 </beans>

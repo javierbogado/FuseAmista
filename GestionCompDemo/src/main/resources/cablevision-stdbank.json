@@ -1,0 +1,28 @@
+{
+	"header": null,
+	"body": {
+		"HEADER": null,
+		"BODY": {			
+			"cuenta": {
+				"delimiter": null,
+				"position": 38,
+				"value": null,
+				"mask": null
+			},
+			"usuario": {
+				"delimitador": null,
+				"position": 35,
+				"value": null,
+				"mascara": null
+			},
+			"fecha": {
+				"delimitador": null,
+				"position": 10,
+				"value": null,
+				"mascara": null
+			}
+		},
+		"FOOTER": null
+	},
+	"footer": null
+}
