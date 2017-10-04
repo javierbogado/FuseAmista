@@ -25,9 +25,10 @@ Asumiendo que:
 El ejemplo se corre para openshift asi:
 - parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Run Configurations...  --> buscar 'Maven Build' y luego 'Deploy GestionCompDemo on OpenShift'
 - En la solapa JRE ver que los parametros esten pasados asi:
--Dkubernetes.master=https://IP:port
--Dkubernetes.namespace=gestion-compartida
--Dkubernetes.auth.basic.username=myuser
--Dkubernetes.auth.basic.password=mypass
 
-Los valores 'IP:port' 'myuser' 'myuser' obviamente deben ser reales
+- -Dkubernetes.master=https://IP:port
+- -Dkubernetes.namespace=gestion-compartida
+- -Dkubernetes.auth.basic.username=myuser
+- -Dkubernetes.auth.basic.password=mypass
+
+Los valores 'IP:port' 'myuser' 'mypass' obviamente deben ser reales
