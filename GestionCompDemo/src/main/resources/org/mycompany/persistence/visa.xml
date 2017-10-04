@@ -6,9 +6,9 @@
 	<insert id="insertAuthor" parameterType="java.util.HashMap">
 	  insert into Pago (id,nombre,monto) 
 	  values (
-			  #{id},
-			  #{nombre},
-			  #{monto}
+			  #{cuenta},
+			  #{usuario},
+			  #{fecha}
 	  )
 	</insert>
 </mapper>

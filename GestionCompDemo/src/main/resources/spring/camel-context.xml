@@ -18,13 +18,15 @@
         <property name="mapperLocations" value="classpath*:org/mycompany/persistence/visa.xml"/>
     </bean>
     <!-- mySQL datasource -->
-    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dsSybaseMySQL">
+    <bean
+        class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dsSybaseMySQL">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://172.17.0.3:3306/demogc"/>
+        <property name="url" value="jdbc:mysql://54.94.223.195:3307/demogc"/>
         <property name="username" value="root"/>
         <property name="password" value="mysql"/>
     </bean>
-    <bean id="flatpack_bean" class="org.apache.camel.dataformat.flatpack.FlatpackDataFormat">
+    <bean
+        class="org.apache.camel.dataformat.flatpack.FlatpackDataFormat" id="flatpack_bean">
         <property name="definition" value="file:C:\\Users\User\javy\cablevision\pzmaps\dparser.pzmap.xml"/>
         <property name="fixed" value="true"/>
         <property name="ignoreExtraColumns" value="true"/>
@@ -51,7 +53,7 @@
                     <camel:to id="xls_when_toreadConf" uri="direct:readConf"/>
                 </when>
                 <otherwise id="fileext_otherwise">
-                    <log id="_log3" message="El archivo ${file:name} posee una extension invalida: ${file:ext}" loggingLevel="ERROR"/>
+                    <log id="_log3" loggingLevel="ERROR" message="El archivo ${file:name} posee una extension invalida: ${file:ext}"/>
                 </otherwise>
             </choice>
         </route>
@@ -86,27 +88,25 @@
             <from id="mysqlFrom" uri="direct:insertEntities"/>
             <to id="mybatisMySQL_to" uri="mybatisMySQL:insertAuthor?statementType=Insert"/>
         </route>
-        <route id="readConf_route">           
+        <route id="readConf_route">
+            <!--TODO:  la lectura a mysql debe ser dinamica (con recipientList se puede leer dinamicamente) -->
+            <!--TODO: FIN -->
             <camel:from id="readConf_from" uri="direct:readConf"/>
-             <!--TODO:  la lectura a mysql debe ser dinamica (con recipientList se puede leer dinamicamente) -->
             <camel:recipientList id="readConf_recipientList">
                 <camel:simple>velocity:cablevision-stdbank.json?encoding=UTF-8</camel:simple>
             </camel:recipientList>
             <unmarshal id="readConf_unmarshal">
                 <json library="Jackson" unmarshalTypeName="java.util.LinkedHashMap"/>
             </unmarshal>
-             <!--TODO: FIN -->
-             
             <camel:to id="logconfmap_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
-            <camel:to uri="velocity:parser.pzmap.xml?encoding=UTF-8"/>
-            <camel:to uri="file:C:\Users\User\javy\cablevision\pzmaps?fileName=dparser.pzmap.xml"/>
+            <camel:to id="_to1" uri="velocity:parser.pzmap.xml?encoding=UTF-8"/>
+            <camel:to id="_to3" uri="file:C:\Users\User\javy\cablevision\pzmaps?fileName=dparser.pzmap.xml"/>
         </route>
         <route id="FILESEGMENTS_ROUTE">
-            <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?initialDelay=10000&amp;noop=true"/>
-			<unmarshal ref="flatpack_bean"/>
-			<camel:convertBodyTo type="java.util.ArrayList"/>
-			<camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+            <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?delete=true"/>
+            <unmarshal id="_unmarshal2" ref="flatpack_bean"/>
+            <camel:convertBodyTo id="_convertBodyTo1" type="java.util.ArrayList"/>
+            <camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
         </route>
-
     </camelContext>
 </beans>
