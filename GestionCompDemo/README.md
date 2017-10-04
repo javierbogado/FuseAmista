@@ -5,10 +5,10 @@ Esta demo muestra como desarrollar los endpoints FTP/Cxfrs/File mediante Camel r
 La aplicacion utiliza la anotacion Spring [`@ImportResource`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/ImportResource.html) para cargar el Camel Context  [camel-context.xml](src/main/resources/spring/camel-context.xml) en el classpath.
 
 ### Building
-habiendose previamente clonado/descargado el project a la pc local importamos el projecto maven con el jboss developer studio 11.
+Habiendose previamente clonado/descargado el project a la pc local importamos el projecto maven con el jboss developer studio 11.
 una vez importado el project debemos instalarnos el plugin de fuse integration (si ya tenes el plugin esta parte no te haria falta)
 una vez que tengamos el plugin instalado debemos marcar al projecto para que el plugin lo pueda ver asi:
-	parados sobre el proyecto en el jbds le damos click derecho --> Configure --> Add Fuse Integration Support 
+- parados sobre el proyecto en el jbds le damos click derecho --> Configure --> Add Fuse Integration Support 
 
 ### Correr el proyecto localmente en el container de springboot 
 El ejemplo se corre localmente levantando el container de springboot asi:
@@ -24,7 +24,7 @@ Asumiendo que:
 
 El ejemplo se corre para openshift asi:
 - parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Run Configurations...  --> buscar 'Maven Build' y luego 'Deploy GestionCompDemo on OpenShift'
-- En la solapa JRE ver que los parametros esten pasados asi:
+En la solapa JRE ver que los parametros esten pasados asi:
 
 - -Dkubernetes.master=https://IP:port
 - -Dkubernetes.namespace=gestion-compartida
