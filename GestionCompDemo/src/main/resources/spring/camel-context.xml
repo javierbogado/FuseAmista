@@ -11,15 +11,16 @@
     <bean class="org.apache.camel.component.mybatis.MyBatisComponent" id="mybatisMySQL">
         <property name="sqlSessionFactory" ref="sqlSessionFactoryMySQL"/>
     </bean>
+    <bean id="sql" class="org.apache.camel.component.sql.SqlComponent"/>
     <!-- sqlSessionFactory para mySQL  -->
     <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactoryMySQL">
-        <property name="dataSource" ref="dsSybaseMySQL"/>
+        <property name="dataSource" ref="dsMySQL"/>
         <!-- standard mybatis config file -->
         <property name="mapperLocations" value="classpath*:org/mycompany/persistence/visa.xml"/>
     </bean>
-    <!-- mySQL datasource -->
+    <!-- mySQL datasource OSE 172.30.240.218:3306-->
     <bean
-        class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dsSybaseMySQL">
+        class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dsMySQL">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://54.94.223.195:3307/demogc"/>
         <property name="username" value="root"/>
@@ -39,40 +40,40 @@
                 <when id="txt_when">
                     <simple>${file:ext} == 'txt'</simple>
                     <split id="segmentar_splitter" streaming="true">
-                        <tokenize group="8" token="\n"/>
+                        <tokenize group="10000" token="\n"/>
                         <camel:recipientList id="_recipientList1">
                             <camel:simple>file:C:\\Users\\User\\javy\\cablevision\\segments?fileName=${file:name.noext}-$simple{date:now:yyyyMMdd HH-mm-ss}-part${header.CamelSplitIndex}.${file:ext}</camel:simple>
                         </camel:recipientList>
-                        <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+<!--                         <camel:to id="_to2" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/> -->
                     </split>
                     <camel:to id="txt_when_toreadConf" uri="direct:readConf"/>
                 </when>
                 <when id="xls_when">
                     <simple>${file:ext} == 'xls' || ${file:ext} == 'xlsx'</simple>
-                    <log id="_log2" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/>
+<!--                     <log id="_log2" message="El archivo tipo ${file:ext} tiene este contenido: ${body}"/> -->
                     <camel:to id="xls_when_toreadConf" uri="direct:readConf"/>
                 </when>
                 <otherwise id="fileext_otherwise">
-                    <log id="_log3" loggingLevel="ERROR" message="El archivo ${file:name} posee una extension invalida: ${file:ext}"/>
+<!--                     <log id="_log3" loggingLevel="ERROR" message="El archivo ${file:name} posee una extension invalida: ${file:ext}"/> -->
                 </otherwise>
             </choice>
         </route>
         <route id="RESTROUTE">
             <from id="fileEndpointFrom" uri="cxfrs:bean:fileEndpoint?bindingStyle=SimpleConsumer"/>
-            <log id="restLog" message="El body llegado por REST es: ${body}"/>
+<!--             <log id="restLog" message="El body llegado por REST es: ${body}"/> -->
             <camel:unmarshal id="_unmarshal1">
                 <camel:base64/>
             </camel:unmarshal>
             <camel:setProperty id="cxfrsclient_setProperty" propertyName="cliente">
                 <camel:simple>${header.cliente}</camel:simple>
             </camel:setProperty>
-            <camel:log id="_log5" message="#### CLIENTE: ${property.cliente} ###"/>
+<!--             <camel:log id="_log5" message="#### CLIENTE: ${property.cliente} ###"/> -->
             <camel:to id="fromcxfrs:filein_to" uri="direct:filein"/>
         </route>
         <!--         http://camel.apache.org/how-do-i-use-spring-property-placeholder-with-camel-xml.html -->
         <route id="FTPROUTE">
             <from id="ftpEndpointFrom" uri="ftp://User@192.168.0.103:21/cablevision?password=lucho"/>
-            <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/>
+<!--             <log id="ftpLog" message="El body ingresado por FTP es: ${body}"/> -->
             <camel:setProperty id="ftpclient_setProperty" propertyName="cliente">
                 <camel:simple>cablevision</camel:simple>
             </camel:setProperty>
@@ -98,15 +99,20 @@
             <unmarshal id="readConf_unmarshal">
                 <json library="Jackson" unmarshalTypeName="java.util.LinkedHashMap"/>
             </unmarshal>
-            <camel:to id="logconfmap_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+<!--             <camel:to id="logconfmap_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/> -->
             <camel:to id="_to1" uri="velocity:parser.pzmap.xml?encoding=UTF-8"/>
             <camel:to id="_to3" uri="file:C:\Users\User\javy\cablevision\pzmaps?fileName=dparser.pzmap.xml"/>
         </route>
         <route id="FILESEGMENTS_ROUTE">
             <from id="filesegments_from" uri="file:C:\\Users\\User\\javy\\cablevision\\segments?delete=true"/>
             <unmarshal id="_unmarshal2" ref="flatpack_bean"/>
-            <camel:convertBodyTo id="_convertBodyTo1" type="java.util.ArrayList"/>
-            <camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/>
+            <camel:convertBodyTo id="_convertBodyTo1" type="java.util.ArrayList"/>            
+            <camel:to uri="sql: insert into Pago (cuenta,usuario,fecha) 
+ 											  values (:#cuenta, 
+ 													  :#usuario, 
+ 													  :#fecha 
+ 											  )?batch=true&amp;dataSource=dsMySQL" /> 
+<!--             <camel:to id="segmentmaplog_to" uri="log:?level=INFO&amp;showBody=true&amp;skipBodyLineSeparator=false"/> -->
         </route>
     </camelContext>
 </beans>

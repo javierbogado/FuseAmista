@@ -92,11 +92,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-csv</artifactId>
+			<artifactId>camel-mybatis</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-mybatis</artifactId>
+			<artifactId>camel-sql</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.mybatis</groupId>
