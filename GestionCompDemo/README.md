@@ -12,7 +12,7 @@ una vez que tengamos el plugin instalado debemos marcar al projecto para que el 
 
 ### Correr el proyecto localmente en el container de springboot 
 El ejemplo se corre localmente levantando el container de springboot asi:
-	- parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Local Camel Context 
+- parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Local Camel Context 
 	
 Esto compilara el proyecto y lo dejara disponible para pruebas locales, o sea podemos probar los distintos endpoints de la demo (FTP, REST, FILE) sin necesidad de levantar un server.
 
@@ -23,5 +23,5 @@ Asumiendo que:
 - El OpenShift platform ya esta levantado.
 
 El ejemplo se corre para openshift asi:
-	- parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Run Configurations...  --> buscar 'Maven Build' y luego 'Deploy GestionCompDemo on OpenShift'
+- parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Run Configurations...  --> buscar 'Maven Build' y luego 'Deploy GestionCompDemo on OpenShift'
 
