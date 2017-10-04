@@ -1,46 +1,27 @@
-# Spring-Boot and Camel XML QuickStart
+# Spring-Boot y Camel XML DEMO GC 
 
-This example demonstrates how to configure Camel routes in Spring Boot via a Spring XML configuration file.
+Esta demo muestra como desarrollar los endpoints FTP/Cxfrs/File mediante Camel routes en Spring Boot por Spring DSL.
 
-The application utilizes the Spring [`@ImportResource`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/ImportResource.html) annotation to load a Camel Context definition via a [camel-context.xml](src/main/resources/spring/camel-context.xml) file on the classpath.
+La aplicacion utiliza la anotacion Spring [`@ImportResource`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/ImportResource.html) para cargar el Camel Context  [camel-context.xml](src/main/resources/spring/camel-context.xml) en el classpath.
 
 ### Building
+habiendose previamente clonado/descargado el project a la pc local importamos el projecto maven con el jboss developer studio 11.
+una vez importado el project debemos instalarnos el plugin de fuse integration (si ya tenes el plugin esta parte no te haria falta)
+una vez que tengamos el plugin instalado debemos marcar al projecto para que el plugin lo pueda ver asi:
+	parados sobre el proyecto en el jbds le damos click derecho --> Configure --> Add Fuse Integration Support 
 
-The example can be built with
+### Correr el proyecto localmente en el container de springboot 
+El ejemplo se corre localmente levantando el container de springboot asi:
+	parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Local Camel Context 
+	
+Esto compilara el proyecto y lo dejara disponible para pruebas locales, o sea podemos probar los distintos endpoints de la demo (FTP, REST, FILE) sin necesidad de levantar un server.
 
-    mvn clean install
 
-### Running the example in OpenShift
+### Correr el proyecto en OpenShift
 
-It is assumed that:
-- OpenShift platform is already running, if not you can find details how to [Install OpenShift at your site](https://docs.openshift.com/container-platform/3.3/install_config/index.html).
-- Your system is configured for Fabric8 Maven Workflow, if not you can find a [Get Started Guide](https://access.redhat.com/documentation/en/red-hat-jboss-middleware-for-openshift/3/single/red-hat-jboss-fuse-integration-services-20-for-openshift/)
+Asumiendo que:
+- El OpenShift platform ya esta levantado.
 
-The example can be built and run on OpenShift using a single goal:
-
-    mvn fabric8:deploy
-
-To list all the running pods:
-
-    oc get pods
-
-Then find the name of the pod that runs this quickstart, and output the logs from the running pods with:
-
-    oc logs <name of pod>
-
-You can also use the OpenShift [web console](https://docs.openshift.com/container-platform/3.3/getting_started/developers_console.html#developers-console-video) to manage the running pods, and view logs and much more.
-
-### Running via an S2I Application Template
-
-Application templates allow you deploy applications to OpenShift by filling out a form in the OpenShift console that allows you to adjust deployment parameters.  This template uses an S2I source build so that it handle building and deploying the application for you.
-
-First, import the Fuse image streams:
-
-    oc create -f https://raw.githubusercontent.com/jboss-fuse/application-templates/GA/fis-image-streams.json
-
-Then create the quickstart template:
-
-    oc create -f https://raw.githubusercontent.com/jboss-fuse/application-templates/GA/quickstarts/spring-boot-camel-xml-template.json
-
-Now when you use "Add to Project" button in the OpenShift console, you should see a template for this quickstart. 
+El ejemplo se corre para openshift asi:
+	parados sobre el proyecto en el jbds le damos click derecho --> Run as --> Run Configurations...  --> buscar 'Maven Build' y luego 'Deploy GestionCompDemo on OpenShift'
 
